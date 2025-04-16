@@ -1,90 +1,146 @@
-/* SELECT * FROM books; */
+-- Lấy toàn bộ thông tin người dùng
+-- SELECT * FROM users;
 
--- Cập nhật dữ liệu sách theo cách trường hợp CASE
-/* UPDATE books
-SET author_id = CASE
-    WHEN title = 'Harry Potter' THEN 1
-    WHEN title = 'Kafka on the Shore' THEN 2
-    WHEN title = '1984' THEN 3
-    ELSE author_id
-END
-WHERE title IN ('Harry Potter','Kafka on the Shore','1984'); 
-*/
+-- Lấy tên và giá của tất cả sản phẩm có giá > 500
+/* SELECT name, price
+FROM products
+WHERE price > 500; */
 
--- Xóa sách có tiêu đề '1984'
--- DELETE FROM books WHERE title = '1984';
+-- Lấy các đơn hàng (orders) được đặt sau ngày 2025-04-11
+/* SELECT * 
+FROM orders
+WHERE order_date > '2025-04-11'; */
 
--- Thêm cột vào bảng đã tạo
- /* ALTER TABLE books
+-- Tìm người dùng có tuổi > 23
+/* SELECT *
+FROM users
+WHERE age > 23; */
 
-ADD (
-    price INT,
-    published_year INT
+-- Tìm sản phẩm có giá từ 500 đến 1000
+/* SELECT *
+FROM products
+WHERE price > 500 AND price < 1000; */
+
+-- Sắp xếp người dùng theo tuổi giảm dần
+/* SELECT *
+FROM users
+ORDER BY age DESC;  */
+
+-- Lấy danh sách đơn hàng kèm tên người mua và tên sản phẩm
+/* SELECT u.name AS user_name, p.name, o.*
+FROM orders o
+JOIN users u ON o.user_id = u.id
+JOIN products p ON o.product_id = p.id
+ORDER BY o.id ASC; */
+
+-- Lấy tên sản phẩm và tổng số lượng đã bán ra kể cả sản phẩm chưa từng bán
+/* SELECT p.name AS product, COUNT(o.product_id) AS soluong
+FROM orders o
+RIGHT JOIN products p ON o.product_id = p.id
+GROUP BY p.id -- lấy bảng bên chuẩn nghĩa là bảng products
+ */
+
+-- Đếm số lượng đơn hàng theo từng người dùng
+/* SELECT u.*, COUNT(o.user_id) AS soluong_donhang
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+GROUP BY u.id;
+ */
+
+-- Lấy người dùng đã đặt hơn 1 đơn hàng
+/* SELECT u.*, COUNT(o.user_id) AS soluong_donhang
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+GROUP BY u.id
+HAVING COUNT(o.user_id) > 1;  */
+
+-- Tìm người dùng có tổng giá trị đơn hàng cao nhất
+/* SELECT u.id, u.name, SUM(price*quantity) AS tonggiatri
+FROM orders o
+JOIN users u ON o.user_id = u.id
+JOIN products p ON o.product_id = p.id
+GROUP BY u.id, u.name
+ORDER BY SUM(price*quantity) DESC
+LIMIT 1; 
+WITH tmp AS (
+  SELECT u.id, u.name, SUM(price*quantity) AS tonggiatri
+  FROM orders o
+  JOIN users u ON o.user_id = u.id
+  JOIN products p ON o.product_id = p.id
+  GROUP BY u.id, u.name
+  
+),
+xep_hang AS(
+  SELECT *, RANK() OVER (ORDER BY tonggiatri DESC) AS hang
+  FROM tmp
 )
+
+SELECT *
+FROM xep_hang
+WHERE hang = 1; */
+
+-- Lấy danh sách người dùng chưa từng mua hàng
+/* SELECT *
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE o.id IS NULL */
+
+--  Với mỗi người dùng, liệt kê tổng số tiền họ đã chi, sắp xếp theo số tiền giảm dần
+
+/* SELECT u.id, u.name, SUM(p.price * o.quantity) AS tonggiatri
+FROM orders o
+JOIN users u ON o.user_id = u.id
+JOIN products p ON o.product_id = p.id
+GROUP BY u.id, u.name
+ORDER BY tonggiatri DESC;
  */
 
- -- Cập nhật thêm dữ liệu trong bảng có sẵn bằng cách tạo bảng tạm
-/* UPDATE books AS b
-JOIN (
-  SELECT 'Harry Potter' AS title, 150000 AS price, 2001 AS published_year
-  UNION ALL
-  SELECT 'Kafka on the Shore', 120000, 2005
-) AS tmp
-ON b.title = tmp.title
-SET
-  b.price = tmp.price,
-  b.published_year = tmp.published_year; 
-SELECT * FROM books WHERE price BETWEEN 100000 ANd 150000; */
+-- Với mỗi sản phẩm, liệt kê: tên sản phẩm, tổng số lần bán, tổng số lượng bán, tổng doanh thu
 
--- Lấy sách có 'Harry' trong tiêu đề
--- SELECT * FROM books WHERE title LIKE '%Harry%'
+/* SELECT p.id, p.name, COUNT(o.product_id) AS solanban, SUM(o.quantity) AS soluongban, SUM(p.price * o.quantity) AS tongdoanhthu
+FROM orders o
+LEFT JOIN products p ON o.product_id = p.id
+GROUP BY p.id */
 
--- Lấy sách có giá thấp/cao DECS/ASC limit là số lượng lấy 
--- SELECT * FROM books ORDER BY price DESC LIMIT 1;
+-- Lấy đơn hàng có giá trị cao nhất của mỗi người dùng
 
--- Lấy sách có năm xuất bản nhỏ hơn 1990 hoặc giá nhỏ hơn 130000
--- SELECT * FROM books WHERE published_year < 1990 OR price < 130000;
-
--- Đếm tổng số sách trong thư viện tạo cột total_books để đếm
--- SELECT COUNT(*) AS total_books FROM books;
-
--- Tính tổng giá trị tất cả sách
--- SELECT SUM(price) AS total_price FROM books;
-
--- Tính giá trung bình của sách, round để làm tròn tùy ý
-/* SELECT ROUND(AVG(price), 0) AS avg_price 
-FROM books; */
-
--- Tìm sách có giá cao nhất và thấp nhất
-/* SELECT max(price) AS max_price, min(price) AS min_price 
-FROM books; */
-
--- Lấy sách có giá thấp nhất và số lượng sách có giá đó
-/* SELECT min(price) AS min_price,
-       count(*) AS so_luong
-FROM books
-WHERE price = (SELECT min(price) AS min_price FROM books);
+/* SELECT u.name, o.product_id, tonggiatri
+FROM (
+  SELECT o.*, (p.price * o.quantity) AS tonggiatri,
+    RANK() OVER (PARTITION BY o.user_id ORDER BY (p.price * o.quantity) DESC) AS rnk
+  FROM orders o
+  LEFT JOIN products p ON o.product_id = p.id
+) o
+JOIN users u ON o.user_id = u.id
+WHERE o.rnk = 1;
  */
--- Nhóm các sách có cùng author_id rồi trả về author_id và tổng giá tiền sách
-/* SELECT author_id, SUM(price) AS tong_tien
-FROM books
-GROUP BY author_id;
+
+-- Lấy tên người dùng và xếp hạng họ theo tổng chi tiêu
+
+/* SELECT *
+FROM (
+  SELECT   
+    u.name,
+    SUM(p.price * o.quantity) AS tongchitieu, 
+    RANK() OVER (ORDER BY SUM(p.price * o.quantity) DESC) AS hang
+  FROM orders o
+  LEFT JOIN users u ON o.user_id = u.id
+  LEFT JOIN products p ON o.product_id = p.id
+  GROUP BY o.user_id
+) AS tmp;
  */
--- Nhóm các sách có cùng 1 tác giả rồi đếm số lượng sách của mỗi tác giả
-/* 
-SELECT author_id, COUNT(*) AS total
-FROM books
-GROUP BY author_id; */
--- Nhóm các sách cùng 1 tác giả và đếm số lượng lấy ra tác giả có số lượng sách lớn hơn 2
-/* SELECT author_id, COUNT(*) total
-FROM books
-GROUP BY author_id
-HAVING total >= 2
+
+--  Với mỗi đơn hàng, hiển thị thêm cột "loại" phân loại theo giá trị đơn hàng
+
+/* SELECT 
+  o.*,
+  (p.price * o.quantity) AS tonggiatri,
+  CASE
+      WHEN (p.price * o.quantity) < 1000 THEN "Nhỏ"
+      WHEN (p.price * o.quantity) BETWEEN 1000 AND 3000 THEN "Trung bình"
+      WHEN (p.price * o.quantity) > 3000 THEN "Lớn"
+  END AS loai
+FROM orders o
+JOIN products p ON o.product_id = p.id
+
  */
-/* SELECT author_id, COUNT(*) AS total
-FROM books
-WHERE price > 100 -- Điều kiện với dữ liệu gốc
-GROUP BY author_id -- Gom nhóm theo author_id
-HAVING total >= 2 -- Điều kiện sau nhóm
-ORDER BY total DESC -- Sắp xếp giảm dần
-LIMIT 3; -- Lấy top 3 */

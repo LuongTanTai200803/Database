@@ -1,14 +1,18 @@
-/* INSERT INTO authors (name) VALUES
-('Huy'), ('Long'), ('Tuan'); */
-/* INSERT INTO books (title) VALUES
-('Harry Potter'),
-('Kafka on the Shore'),
-('1984') */
 
+INSERT INTO users(name, email, age) VALUES
+('Nam', 'nam@gmail.com', 25),
+('Linh', 'linh@gmail.com', 30),
+('Tú', 'tu@gmail.com', 22);
 
-INSERT INTO books (id, author_id, title, price, published_year) VALUES
-(3,3,'a1', 90000, 1999),
-(4,4,'a2', 90000, 1998),
-(5,5,'a3', 100000, 1998),
-(6,6,'a4', 90000, 2000),
-(7,6,'a5', 110000, 2005)
+INSERT INTO products(name, price) VALUES
+('Laptop', 1500.00),
+('Smartphone', 700.00),
+('Tablet', 400.00);
+
+INSERT INTO orders(user_id, product_id, quantity, order_date) VALUES
+(1, 1, 1, '2025-04-10'),
+(2, 2, 2, '2025-04-11'),
+(1, 3, 3, '2025-04-12'),
+(3, 1, 1, '2025-04-13');
+ */
+
